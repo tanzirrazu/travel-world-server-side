@@ -21,6 +21,7 @@ async function run() {
 		const database = client.db('worldTravel');
 		const toursCollection = database.collection('services');
 		const ordersCollection = database.collection('orders');
+		const userCollection = database.collection('users');
 
 		// post data from client side
 		app.post('/services', async (req, res) => {
@@ -28,10 +29,26 @@ async function run() {
 			const result = await toursCollection.insertOne(tours);
 			res.send(result);
 		});
-		// order post
+		// all order post
 		app.post('/orders', async (req, res) => {
 			const result = await ordersCollection.insertOne(req.body);
 			res.send(result);
+		});
+		// update orders status
+		app.put('/updateStatus/:id', async (req, res) => {
+			const id = req.params.id;
+			const updated = req.body.status;
+			const filter = { _id: ObjectId(id) };
+			const result = await ordersCollection.updateOne(filter, {
+				$set: { status: updated },
+			});
+			res.send(result);
+		});
+		// get all orders
+		app.get('/allOrders', async (req, res) => {
+			const order = ordersCollection.find({});
+			const orders = await order.toArray();
+			res.send(orders);
 		});
 		// get all data from mongodb
 		app.get('/services', async (req, res) => {
@@ -44,6 +61,33 @@ async function run() {
 			const id = req.params.id;
 			const query = { _id: ObjectId(id) };
 			const result = await toursCollection.findOne(query);
+			res.send(result);
+		});
+		// post users
+		app.post('/users', async (req, res) => {
+			const user = req.body;
+			const result = await userCollection.insertOne(user);
+			res.send(result);
+		});
+		// get my orders
+		app.get('/myOrders/:email', async (req, res) => {
+			const result = await ordersCollection
+				.find({ Email: req.params.email })
+				.toArray();
+			res.send(result);
+		});
+		// delete myOrders
+		app.delete('/deleteOrder/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: ObjectId(id) };
+			const result = await ordersCollection.deleteOne(query);
+			res.send(result);
+		});
+		// delete all Orders
+		app.delete('/allOrders/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: ObjectId(id) };
+			const result = await ordersCollection.deleteOne(query);
 			res.send(result);
 		});
 	} finally {
